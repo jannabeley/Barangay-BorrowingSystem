@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipment Borrowing & Monitoring System – Barangay Camp Tinio</title>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<!-- TERMS & CONDITIONS (first thing visitors see; must be accepted to continue) -->
+<div class="terms-overlay" id="terms-overlay" role="dialog" aria-modal="true" aria-labelledby="terms-title">
+  <div class="terms-box">
+    <div class="terms-head">
+      <div class="header-seal terms-seal">🏛️</div>
+      <div>
+        <h2 id="terms-title">Terms and Conditions</h2>
+        <p>Barangay Camp Tinio Equipment Borrowing System</p>
+      </div>
+    </div>
+    <div class="terms-body" tabindex="0">
+      <p>Please read the following before using the system:</p>
+      <ol>
+        <li>Borrowers must be residents of Barangay Camp Tinio and must attach a clear photo of a valid ID with every request.</li>
+        <li>All information you provide (name, contact number, purpose, dates) must be true and accurate.</li>
+        <li>Submitting a request does not guarantee approval. Requests are reviewed and may be approved or rejected by barangay staff.</li>
+        <li>Equipment that is currently out on loan is not available to other borrowers until it has been returned.</li>
+        <li>Borrowed items may only be used for the purpose stated in the request and must be returned on or before the return date, in the same condition.</li>
+        <li>Lost or damaged items must be reported to the barangay immediately. The borrower may be required to repair or replace them.</li>
+        <li>Your personal information and ID photo are used only to process and monitor equipment borrowing.</li>
+        <li>The barangay may reserve equipment for official barangay activities and may cancel requests when necessary.</li>
+      </ol>
+    </div>
+    <label class="terms-check" for="terms-check">
+      <input type="checkbox" id="terms-check" onchange="onTermsToggle()">
+      <span>I have read, understood, and agree to the Terms and Conditions.</span>
+    </label>
+    <button class="btn btn-green terms-continue" id="terms-continue" onclick="acceptTerms()" disabled>Continue</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="header-seal">🏛️</div>
+    <div class="header-title">
+      <h1>EQUIPMENT BORROWING AND MONITORING SYSTEM</h1>
+      <p>Barangay Camp Tinio</p>
+    </div>
+  </div>
+  <svg class="header-mountain" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg" fill="white">
+    <path d="M0,80 L80,20 L140,50 L200,5 L260,45 L320,25 L400,60 L400,80 Z"/>
+  </svg>
+</header>
+
+<!-- PUBLIC NAV -->
+<nav id="public-nav">
+  <button data-page="home" class="active" onclick="showPage('home')">Home</button>
+  <button data-page="borrow" onclick="showPage('borrow')">Request Equipment</button>
+  <div class="nav-spacer"></div>
+  <button class="nav-admin-btn" onclick="showAdmin()">⚙ Admin</button>
+</nav>
+
+<!-- ADMIN NAV -->
+<nav id="admin-nav" style="display:none;">
+  <button data-page="dashboard" class="active" onclick="showAdminPage('dashboard')">Home</button>
+  <button data-page="a-pending" onclick="showAdminPage('a-pending')">Pending</button>
+  <button data-page="a-approved" onclick="showAdminPage('a-approved')">Approved</button>
+  <button data-page="a-rejected" onclick="showAdminPage('a-rejected')">Rejected</button>
+  <button data-page="a-returned" onclick="showAdminPage('a-returned')">Returned</button>
+  <button data-page="a-lost" onclick="showAdminPage('a-lost')">Lost/Damaged</button>
+  <button data-page="a-inventory" onclick="showAdminPage('a-inventory')">Inventory</button>
+  <button data-page="a-reports" onclick="showAdminPage('a-reports')">Reports</button>
+  <div class="nav-spacer"></div>
+  <span class="admin-user">👤 Admin</span>
+  <button class="nav-admin-btn" onclick="showPublic()" style="margin-left:12px;">← Public Site</button>
+  <button class="nav-admin-btn" onclick="logout()">Logout</button>
+</nav>
+
+<!-- ══════════ PUBLIC PAGES ══════════ -->
+
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h2>Welcome to <span>Barangay Camp Tinio</span> Equipment Borrowing System.</h2>
+    <p>Request and monitor equipment easily!</p>
+    <div class="hero-btns">
+      <button class="btn btn-green" onclick="showPage('borrow')">🪑 Borrow Equipment &rsaquo;</button>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="card">
+      <h3>🏷️ Available Items</h3>
+      <div class="inv-items" id="pub-inventory"></div>
+    </div>
+    <div class="card">
+      <h3>📌 Guidelines</h3>
+      <ul class="guide-list">
+        <li>Valid ID Required</li>
+        <li>Specify Date &amp; Purpose</li>
+        <li>Return Items on Time</li>
+        <li>Report damaged items immediately</li>
+        <li>Items are for Barangay residents only</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-borrow">
+  <div class="form-page">
+    <div class="form-card">
+      <h2>🪑 Borrow Equipment</h2>
+      <p class="form-desc">Fill out the form below to submit an equipment borrowing request. All fields are required.</p>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-name">Full Name</label><input type="text" id="f-name" placeholder="Juan Dela Cruz"></div>
+        <div class="form-group"><label for="f-contact">Contact Number</label><input type="tel" id="f-contact" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-equipment">Equipment Needed</label><select id="f-equipment" onchange="updateQtyLimit()"></select></div>
+        <div class="form-group"><label for="f-qty">Quantity</label><input type="number" id="f-qty" placeholder="Select item first" min="1" oninput="clampQty()"><small class="hint" id="qty-hint"></small></div>
+      </div>
+      <div class="form-group"><label for="f-purpose">Purpose of Use</label><input type="text" id="f-purpose" placeholder="e.g. Birthday party, community event…"></div>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-date">Date Needed</label><input type="date" id="f-date" onchange="syncReturnMin()"></div>
+        <div class="form-group"><label for="f-return">Return Date</label><input type="date" id="f-return"></div>
+      </div>
+      <div class="form-group">
+        <label for="f-id">Valid ID (photo)</label>
+        <input type="file" id="f-id" accept="image/jpeg,image/png,image/*" onchange="handleIdUpload(this)">
+        <small class="hint">Attach a clear picture of your valid ID (JPG/PNG).</small>
+        <img id="f-id-preview" class="id-preview" alt="Valid ID preview" style="display:none;">
+      </div>
+      <div class="form-submit"><button class="btn btn-green" onclick="submitRequest()">✔ Submit Request</button></div>
+      <div class="success-msg" id="borrow-success">
+        ✅ Your request has been submitted! Your Request ID is <strong id="req-id-out"></strong>. Please keep it for your records.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ ADMIN PAGES ══════════ -->
+
+<div class="page" id="page-login">
+  <div class="form-page">
+    <div class="form-card">
+      <h2>🔐 Admin Login</h2>
+      <p class="form-desc">Authorized barangay staff only. Please sign in to continue.</p>
+      <div class="form-group"><label for="login-user">Username</label><input type="text" id="login-user" autocomplete="username"></div>
+      <div class="form-group"><label for="login-pass">Password</label><input type="password" id="login-pass" autocomplete="current-password"></div>
+      <div class="form-submit"><button class="btn btn-navy" onclick="doLogin()">🔓 Login</button></div>
+      <p style="text-align:center;margin-top:14px;"><button class="link-btn" onclick="showPublic()">← Back to public site</button></p>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-dashboard">
+  <div class="admin-content">
+    <h2 class="page-title">Dashboard</h2>
+    <div class="stat-cards">
+      <div class="stat-card sc-blue" onclick="showAdminPage('a-pending')"><div class="sc-icon">📋</div><div class="sc-num" id="dash-pending">0</div><div class="sc-label">Pending Requests</div></div>
+      <div class="stat-card sc-green" onclick="showAdminPage('a-approved')"><div class="sc-icon">✅</div><div class="sc-num" id="dash-approved">0</div><div class="sc-label">Approved Requests</div></div>
+      <div class="stat-card sc-orange" onclick="showAdminPage('a-returned')"><div class="sc-icon">📦</div><div class="sc-num" id="dash-returned">0</div><div class="sc-label">Returned Items</div></div>
+      <div class="stat-card sc-red" onclick="showAdminPage('a-lost')"><div class="sc-icon">⚠️</div><div class="sc-num" id="dash-lost">0</div><div class="sc-label">Lost/Damaged</div></div>
+    </div>
+    <div class="admin-grid">
+      <div class="stack">
+        <div class="card">
+          <div class="card-header"><h3>Equipment Inventory</h3></div>
+          <div class="inv-items" id="dash-inventory"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Recent Requests</h3></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="dash-recent-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header"><h3>Quick Actions</h3></div>
+          <div class="quick-actions">
+            <button class="qa-btn qa-green" onclick="addRequestShortcut()">➕ Add New Request</button>
+            <button class="qa-btn qa-blue" onclick="showAdminPage('a-inventory')">⚙ Manage Inventory</button>
+            <button class="qa-btn qa-teal" onclick="showAdminPage('a-reports')">📊 View Reports</button>
+            <button class="qa-btn qa-orange" onclick="resetData()">🔄 Reset Demo Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-a-pending">
+  <div class="admin-content">
+    <h2 class="page-title">Pending Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Purpose</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="pending-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-approved">
+  <div class="admin-content">
+    <h2 class="page-title">Approved Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="approved-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-rejected">
+  <div class="admin-content">
+    <h2 class="page-title">Rejected Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Reason</th><th>Status</th></tr></thead>
+      <tbody id="rejected-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-returned">
+  <div class="admin-content">
+    <h2 class="page-title">Returned Items</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th></tr></thead>
+      <tbody id="returned-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-lost">
+  <div class="admin-content">
+    <h2 class="page-title">Lost / Damaged Items</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th></tr></thead>
+      <tbody id="lost-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+
+<div class="page" id="page-a-inventory">
+  <div class="admin-content">
+    <h2 class="page-title">Inventory</h2>
+    <div class="card">
+      <div class="card-header"><h3>Equipment Stock</h3><button class="btn btn-green btn-sm" onclick="showAddItem()">+ Add Item</button></div>
+      <div class="table-scroll"><table class="inv-table">
+        <thead><tr><th>Item</th><th>Total</th><th>Available</th><th>In Use</th><th>Lost/Damaged</th><th>Actions</th></tr></thead>
+        <tbody id="inventory-table"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-a-reports">
+  <div class="admin-content">
+    <h2 class="page-title">📊 Reports</h2>
+    <div id="reports-admin-body"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Title</h3>
+    <p id="modal-body"></p>
+    <div id="modal-form"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" id="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green btn-sm" id="modal-confirm">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  &copy; <span id="year">2024</span> <span>Barangay Camp Tinio</span> &mdash; Equipment Borrowing and Monitoring System. All rights reserved.
+</footer>
+
+<!-- Load order matters: store → ui → app -->
+<script src="store.js"></script>
+<script src="ui.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

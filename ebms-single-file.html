@@ -1,0 +1,1366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipment Borrowing & Monitoring System – Barangay Camp Tinio</title>
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1a3a6b;
+  --navy-dark: #0f2347;
+  --navy-mid: #2558a8;
+  --gold: #c8a84b;
+  --green: #2e7d32;
+  --green-light: #43a047;
+  --red: #c62828;
+  --orange: #e65100;
+  --teal: #00838f;
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --text: #1a2a3a;
+  --text-muted: #556070;
+  --border: #d0dae8;
+  --approved: #1b5e20;
+  --approved-bg: #e8f5e9;
+  --pending-bg: #fff8e1;
+  --pending: #f57f17;
+  --returned-bg: #fff3e0;
+  --returned: #e65100;
+  --shadow: 0 2px 12px rgba(26,58,107,0.10);
+  --shadow-lg: 0 8px 32px rgba(26,58,107,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Source Sans 3', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ── HEADER ── */
+.header {
+  background: linear-gradient(135deg, var(--navy-dark) 0%, var(--navy) 60%, var(--navy-mid) 100%);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+}
+.header-top { display: flex; align-items: center; gap: 20px; padding: 18px 32px; position: relative; }
+.header-seal {
+  width: 72px; height: 72px;
+  background: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 36px;
+  flex-shrink: 0;
+  border: 3px solid var(--gold);
+  box-shadow: 0 0 0 4px rgba(200,168,75,0.2);
+}
+.header-title h1 { font-family: 'Merriweather', serif; font-size: 1.5rem; font-weight: 900; letter-spacing: 0.5px; line-height: 1.2; }
+.header-title p { font-size: 0.95rem; opacity: 0.8; margin-top: 2px; font-weight: 300; letter-spacing: 1px; }
+.header-mountain { position: absolute; bottom: 0; right: 0; width: 320px; opacity: 0.12; }
+@media (max-width: 600px) { .header-title h1 { font-size: 1.05rem; } .header-top { padding: 14px 16px; } }
+
+/* ── NAV ── */
+nav {
+  background: var(--navy-dark);
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  border-top: 2px solid var(--gold);
+  position: relative;
+  z-index: 10;
+  overflow-x: auto;
+}
+nav button {
+  background: none;
+  border: none;
+  color: #cdd8ea;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.92rem;
+  font-weight: 600;
+  padding: 14px 20px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  border-bottom: 3px solid transparent;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+nav button:hover { color: #fff; background: rgba(255,255,255,0.05); }
+nav button.active { color: #fff; border-bottom-color: var(--gold); }
+.nav-spacer { flex: 1; min-width: 12px; }
+.nav-admin-btn {
+  background: rgba(200,168,75,0.15) !important;
+  color: var(--gold) !important;
+  border: 1px solid rgba(200,168,75,0.3) !important;
+  border-radius: 4px !important;
+  padding: 8px 16px !important;
+  margin-left: 8px;
+}
+.admin-user { color: #9bb3d0; font-size: 0.85rem; white-space: nowrap; }
+
+/* ── PAGES ── */
+.page { display: none; animation: fadeIn 0.3s ease; }
+.page.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.page-title { font-family: 'Merriweather', serif; color: var(--navy); margin-bottom: 20px; }
+
+/* ── HERO ── */
+.hero { text-align: center; background: linear-gradient(135deg, #e8edf5 0%, #dce6f0 100%); padding: 40px 32px 36px; border-bottom: 1px solid var(--border); }
+.hero h2 { font-family: 'Merriweather', serif; font-size: 1.35rem; color: var(--navy); margin-bottom: 8px; }
+.hero h2 span { color: var(--navy-mid); }
+.hero p { color: var(--text-muted); font-size: 1rem; margin-bottom: 28px; }
+.hero-btns { justify-content: center; display: flex; gap: 16px; flex-wrap: wrap; }
+.btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 28px; border-radius: 6px; font-family: 'Source Sans 3', sans-serif; font-size: 1rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; text-decoration: none; letter-spacing: 0.3px; }
+.btn-green { background: var(--green-light); color: #fff; }
+.btn-green:hover { background: var(--green); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(46,125,50,0.3); }
+.btn-navy { background: var(--navy-mid); color: #fff; }
+.btn-navy:hover { background: var(--navy); transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,58,107,0.3); }
+.btn-sm { padding: 8px 16px; font-size: 0.85rem; border-radius: 4px; }
+.btn-outline { background: none; border: 2px solid var(--border); color: var(--text-muted); }
+.btn-outline:hover { border-color: var(--navy-mid); color: var(--navy-mid); }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { background: #8b0000; }
+
+/* ── CARDS ── */
+.cards-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 28px 32px; }
+@media (max-width: 700px) { .cards-grid { grid-template-columns: 1fr; padding: 16px; } .hero { padding: 28px 16px; } }
+.card { background: var(--surface); border-radius: 10px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); }
+.card h3 { font-family: 'Merriweather', serif; font-size: 1.05rem; color: var(--navy-mid); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+/* ── INVENTORY ── */
+.inv-items { display: flex; gap: 16px; flex-wrap: wrap; }
+.inv-item { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--bg); border-radius: 8px; padding: 14px 20px; flex: 1; min-width: 80px; border: 1px solid var(--border); }
+.inv-item .icon { font-size: 2rem; }
+.inv-item .count { font-size: 1.5rem; font-weight: 700; color: var(--navy); font-family: 'Merriweather', serif; }
+.inv-item .label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* ── GUIDELINES ── */
+.guide-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.guide-list li { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; color: var(--text); }
+.guide-list li::before { content: '✓'; color: var(--green-light); font-weight: 700; font-size: 1rem; width: 20px; flex-shrink: 0; }
+
+/* ── TABLES ── */
+table { width: 100%; border-collapse: collapse; }
+th { background: var(--bg); color: var(--text-muted); font-size: 0.82rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 10px 16px; text-align: left; border-bottom: 2px solid var(--border); }
+td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 0.93rem; }
+tr:hover td { background: #f5f8fc; }
+.table-scroll { overflow-x: auto; }
+.empty-row { text-align: center; color: var(--text-muted); padding: 24px; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.badge-approved { background: var(--approved-bg); color: var(--approved); }
+.badge-pending { background: var(--pending-bg); color: var(--pending); }
+.badge-returned { background: var(--returned-bg); color: var(--returned); }
+.badge-lost { background: #fce4ec; color: #b71c1c; }
+
+.req-id { color: var(--navy-mid); font-weight: 700; }
+.link-btn { background: none; border: none; color: var(--navy-mid); font-size: 0.85rem; font-weight: 600; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: background 0.15s; }
+.link-btn:hover { background: #e8edf5; }
+
+/* ── FORMS ── */
+.form-page { max-width: 600px; margin: 32px auto; padding: 0 16px; }
+.form-card { background: var(--surface); border-radius: 12px; padding: 32px; box-shadow: var(--shadow-lg); border: 1px solid var(--border); }
+.form-card h2 { font-family: 'Merriweather', serif; font-size: 1.25rem; color: var(--navy); margin-bottom: 8px; }
+.form-card .form-desc { color: var(--text-muted); font-size: 0.93rem; margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.form-group { margin-bottom: 18px; }
+.form-group label { display: block; font-size: 0.87rem; font-weight: 700; color: var(--navy); margin-bottom: 6px; letter-spacing: 0.3px; }
+.form-group input, .form-group select, .form-group textarea {
+  width: 100%;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-family: 'Source Sans 3', sans-serif;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--bg);
+  transition: border-color 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+.form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+  border-color: var(--navy-mid);
+  box-shadow: 0 0 0 3px rgba(37,88,168,0.1);
+  background: #fff;
+}
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+@media (max-width: 500px) { .form-grid { grid-template-columns: 1fr; } .form-card { padding: 20px; } }
+.form-submit { margin-top: 8px; }
+.form-submit .btn { width: 100%; justify-content: center; padding: 14px; font-size: 1.05rem; }
+
+.success-msg { display: none; background: var(--approved-bg); color: var(--approved); border: 1.5px solid #a5d6a7; border-radius: 8px; padding: 16px; margin-top: 16px; font-weight: 600; text-align: center; }
+.success-msg.show { display: block; animation: fadeIn 0.3s ease; }
+
+/* ── STATUS ── */
+.status-check { max-width: 600px; margin: 32px auto; padding: 0 16px; }
+.status-check .form-card { margin-bottom: 24px; }
+.status-result { display: none; background: var(--surface); border-radius: 12px; padding: 28px; box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 24px; }
+.status-result.show { display: block; animation: fadeIn 0.3s ease; }
+.status-result h3 { font-family: 'Merriweather', serif; font-size: 1.1rem; color: var(--navy); margin-bottom: 16px; }
+.status-detail-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.93rem; }
+.status-detail-row:last-child { border-bottom: none; }
+.status-detail-row .label { color: var(--text-muted); }
+.status-detail-row .value { font-weight: 600; color: var(--text); text-align: right; }
+
+/* ── ADMIN ── */
+.admin-content { padding: 28px 32px; }
+@media (max-width: 700px) { .admin-content { padding: 16px; } }
+
+.stat-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+@media (max-width: 900px) { .stat-cards { grid-template-columns: repeat(2, 1fr); } }
+
+.stat-card { border-radius: 10px; padding: 20px; color: #fff; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow); position: relative; overflow: hidden; cursor: pointer; transition: transform 0.15s; }
+.stat-card:hover { transform: translateY(-2px); }
+.stat-card::after { content: ''; position: absolute; top: -20px; right: -20px; width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.1); }
+.stat-card .sc-icon { font-size: 1.8rem; }
+.stat-card .sc-num { font-family: 'Merriweather', serif; font-size: 2rem; font-weight: 900; }
+.stat-card .sc-label { font-size: 0.82rem; opacity: 0.85; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.sc-blue { background: linear-gradient(135deg, #1565c0, #1976d2); }
+.sc-green { background: linear-gradient(135deg, #2e7d32, #388e3c); }
+.sc-orange { background: linear-gradient(135deg, #e65100, #f57c00); }
+.sc-red { background: linear-gradient(135deg, #b71c1c, #c62828); }
+
+.admin-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+@media (max-width: 900px) { .admin-grid { grid-template-columns: 1fr; } }
+.stack > * + * { margin-top: 20px; }
+
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.card-header h3 { font-family: 'Merriweather', serif; font-size: 1rem; color: var(--navy); margin-bottom: 0; }
+
+.quick-actions { display: flex; flex-direction: column; gap: 10px; }
+.qa-btn { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-radius: 8px; font-family: 'Source Sans 3', sans-serif; font-size: 0.93rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+.qa-green { background: var(--green-light); color: #fff; }
+.qa-green:hover { background: var(--green); }
+.qa-blue { background: var(--navy-mid); color: #fff; }
+.qa-blue:hover { background: var(--navy); }
+.qa-teal { background: var(--teal); color: #fff; }
+.qa-teal:hover { background: #006064; }
+.qa-orange { background: var(--orange); color: #fff; }
+.qa-orange:hover { background: #bf360c; }
+
+.inv-table .available { color: var(--green-light); font-weight: 700; }
+.inv-table .in-use { color: var(--navy-mid); font-weight: 700; }
+.inv-table .lost { color: var(--red); font-weight: 700; }
+
+.btn-approve, .btn-return, .btn-edit, .btn-lost { color: #fff; border: none; padding: 6px 12px; border-radius: 4px; font-size: 0.8rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+.btn-approve { background: var(--green-light); } .btn-approve:hover { background: var(--green); }
+.btn-return { background: var(--orange); } .btn-return:hover { background: #bf360c; }
+.btn-edit { background: var(--navy-mid); } .btn-edit:hover { background: var(--navy); }
+.btn-lost { background: var(--red); } .btn-lost:hover { background: #8b0000; }
+
+/* ── MODAL / TOAST ── */
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; }
+.modal-overlay.show { display: flex; }
+.modal { background: #fff; border-radius: 12px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: fadeIn 0.2s ease; }
+.modal h3 { font-family: 'Merriweather', serif; font-size: 1.15rem; color: var(--navy); margin-bottom: 8px; }
+.modal p { color: var(--text-muted); font-size: 0.93rem; margin-bottom: 20px; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 12px; }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--navy-dark); color: #fff; padding: 14px 24px; border-radius: 8px; font-size: 0.93rem; font-weight: 600; z-index: 2000; display: none; box-shadow: var(--shadow-lg); border-left: 4px solid var(--gold); }
+.toast.show { display: block; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
+
+/* ── REPORTS ── */
+.reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px; margin-bottom: 28px; }
+@media (max-width: 700px) { .reports-grid { grid-template-columns: 1fr; } }
+.report-stat { background: var(--surface); border-radius: 10px; padding: 24px; box-shadow: var(--shadow); border: 1px solid var(--border); text-align: center; }
+.report-stat .rs-num { font-family: 'Merriweather', serif; font-size: 2.5rem; font-weight: 900; color: var(--navy); }
+.report-stat .rs-label { color: var(--text-muted); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 4px; }
+
+.bar-chart { display: flex; align-items: flex-end; gap: 12px; height: 140px; padding: 0 8px; }
+.bar-wrap { display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 4px; flex: 1; height: 100%; }
+.bar { width: 100%; border-radius: 4px 4px 0 0; min-height: 4px; transition: height 0.3s; }
+.bar-label { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-align: center; }
+.bar-val { font-size: 0.8rem; color: var(--navy); font-weight: 700; }
+
+footer { background: var(--navy-dark); color: #8899aa; font-size: 0.82rem; text-align: center; padding: 16px 32px; margin-top: 40px; }
+footer span { color: var(--gold); }
+
+/* ── ID UPLOAD ── */
+.hint { display: block; margin-top: 6px; color: var(--text-muted); font-size: 0.8rem; }
+.id-preview { display: block; margin-top: 10px; max-width: 100%; max-height: 220px; border-radius: 8px; border: 1px solid var(--border); }
+.form-group input[type="file"] { padding: 8px; background: #fff; }
+.id-thumb { max-width: 100%; max-height: 260px; border-radius: 8px; border: 1px solid var(--border); margin-top: 6px; }
+
+.badge-rejected { background: #eceff1; color: #455a64; }
+.form-group textarea { resize: vertical; min-height: 70px; }
+
+/* ── TERMS & CONDITIONS GATE ── */
+.terms-overlay { position: fixed; inset: 0; z-index: 3000; background: rgba(15,35,71,0.88); display: flex; align-items: center; justify-content: center; padding: 16px; }
+.terms-overlay.hidden { display: none; }
+.terms-box { background: #fff; border-radius: 14px; width: 100%; max-width: 620px; max-height: 92vh; display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden; }
+.terms-head { display: flex; align-items: center; gap: 16px; padding: 20px 24px; background: linear-gradient(135deg, var(--navy-dark), var(--navy-mid)); color: #fff; }
+.terms-head h2 { font-family: 'Merriweather', serif; font-size: 1.2rem; }
+.terms-head p { font-size: 0.85rem; opacity: 0.8; }
+.terms-seal { width: 52px; height: 52px; font-size: 26px; }
+.terms-body { padding: 20px 24px; overflow-y: auto; font-size: 0.93rem; line-height: 1.55; color: var(--text); }
+.terms-body ol { margin: 12px 0 0 20px; display: flex; flex-direction: column; gap: 8px; }
+.terms-check { display: flex; align-items: flex-start; gap: 10px; padding: 14px 24px; border-top: 1px solid var(--border); background: var(--bg); font-weight: 600; font-size: 0.93rem; cursor: pointer; }
+.terms-check input { width: 20px; height: 20px; margin-top: 1px; flex-shrink: 0; accent-color: var(--green-light); cursor: pointer; }
+.terms-continue { margin: 14px 24px 20px; justify-content: center; }
+.terms-continue:disabled { background: #b0bec5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── STOCK STATUS ── */
+.stock-note { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; color: var(--text-muted); text-align: center; }
+.stock-out { color: #fff; background: var(--red); padding: 3px 8px; border-radius: 100px; }
+.inv-item.is-out { border-color: #ef9a9a; background: #fff5f5; }
+.inv-item.is-out .count { color: var(--red); }
+.hint.hint-out { color: var(--red); font-weight: 700; }
+
+</style>
+</head>
+<body>
+
+<!-- TERMS & CONDITIONS (first thing visitors see; must be accepted to continue) -->
+<div class="terms-overlay" id="terms-overlay" role="dialog" aria-modal="true" aria-labelledby="terms-title">
+  <div class="terms-box">
+    <div class="terms-head">
+      <div class="header-seal terms-seal">🏛️</div>
+      <div>
+        <h2 id="terms-title">Terms and Conditions</h2>
+        <p>Barangay Camp Tinio Equipment Borrowing System</p>
+      </div>
+    </div>
+    <div class="terms-body" tabindex="0">
+      <p>Please read the following before using the system:</p>
+      <ol>
+        <li>Borrowers must be residents of Barangay Camp Tinio and must attach a clear photo of a valid ID with every request.</li>
+        <li>All information you provide (name, contact number, purpose, dates) must be true and accurate.</li>
+        <li>Submitting a request does not guarantee approval. Requests are reviewed and may be approved or rejected by barangay staff.</li>
+        <li>Equipment that is currently out on loan is not available to other borrowers until it has been returned.</li>
+        <li>Borrowed items may only be used for the purpose stated in the request and must be returned on or before the return date, in the same condition.</li>
+        <li>Lost or damaged items must be reported to the barangay immediately. The borrower may be required to repair or replace them.</li>
+        <li>Your personal information and ID photo are used only to process and monitor equipment borrowing.</li>
+        <li>The barangay may reserve equipment for official barangay activities and may cancel requests when necessary.</li>
+      </ol>
+    </div>
+    <label class="terms-check" for="terms-check">
+      <input type="checkbox" id="terms-check" onchange="onTermsToggle()">
+      <span>I have read, understood, and agree to the Terms and Conditions.</span>
+    </label>
+    <button class="btn btn-green terms-continue" id="terms-continue" onclick="acceptTerms()" disabled>Continue</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header class="header">
+  <div class="header-top">
+    <div class="header-seal">🏛️</div>
+    <div class="header-title">
+      <h1>EQUIPMENT BORROWING AND MONITORING SYSTEM</h1>
+      <p>Barangay Camp Tinio</p>
+    </div>
+  </div>
+  <svg class="header-mountain" viewBox="0 0 400 80" xmlns="http://www.w3.org/2000/svg" fill="white">
+    <path d="M0,80 L80,20 L140,50 L200,5 L260,45 L320,25 L400,60 L400,80 Z"/>
+  </svg>
+</header>
+
+<!-- PUBLIC NAV -->
+<nav id="public-nav">
+  <button data-page="home" class="active" onclick="showPage('home')">Home</button>
+  <button data-page="borrow" onclick="showPage('borrow')">Request Equipment</button>
+  <div class="nav-spacer"></div>
+  <button class="nav-admin-btn" onclick="showAdmin()">⚙ Admin</button>
+</nav>
+
+<!-- ADMIN NAV -->
+<nav id="admin-nav" style="display:none;">
+  <button data-page="dashboard" class="active" onclick="showAdminPage('dashboard')">Home</button>
+  <button data-page="a-pending" onclick="showAdminPage('a-pending')">Pending</button>
+  <button data-page="a-approved" onclick="showAdminPage('a-approved')">Approved</button>
+  <button data-page="a-rejected" onclick="showAdminPage('a-rejected')">Rejected</button>
+  <button data-page="a-returned" onclick="showAdminPage('a-returned')">Returned</button>
+  <button data-page="a-lost" onclick="showAdminPage('a-lost')">Lost/Damaged</button>
+  <button data-page="a-inventory" onclick="showAdminPage('a-inventory')">Inventory</button>
+  <button data-page="a-reports" onclick="showAdminPage('a-reports')">Reports</button>
+  <div class="nav-spacer"></div>
+  <span class="admin-user">👤 Admin</span>
+  <button class="nav-admin-btn" onclick="showPublic()" style="margin-left:12px;">← Public Site</button>
+  <button class="nav-admin-btn" onclick="logout()">Logout</button>
+</nav>
+
+<!-- ══════════ PUBLIC PAGES ══════════ -->
+
+<div class="page active" id="page-home">
+  <div class="hero">
+    <h2>Welcome to <span>Barangay Camp Tinio</span> Equipment Borrowing System.</h2>
+    <p>Request and monitor equipment easily!</p>
+    <div class="hero-btns">
+      <button class="btn btn-green" onclick="showPage('borrow')">🪑 Borrow Equipment &rsaquo;</button>
+    </div>
+  </div>
+  <div class="cards-grid">
+    <div class="card">
+      <h3>🏷️ Available Items</h3>
+      <div class="inv-items" id="pub-inventory"></div>
+    </div>
+    <div class="card">
+      <h3>📌 Guidelines</h3>
+      <ul class="guide-list">
+        <li>Valid ID Required</li>
+        <li>Specify Date &amp; Purpose</li>
+        <li>Return Items on Time</li>
+        <li>Report damaged items immediately</li>
+        <li>Items are for Barangay residents only</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-borrow">
+  <div class="form-page">
+    <div class="form-card">
+      <h2>🪑 Borrow Equipment</h2>
+      <p class="form-desc">Fill out the form below to submit an equipment borrowing request. All fields are required.</p>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-name">Full Name</label><input type="text" id="f-name" placeholder="Juan Dela Cruz"></div>
+        <div class="form-group"><label for="f-contact">Contact Number</label><input type="tel" id="f-contact" placeholder="09XXXXXXXXX" maxlength="11" inputmode="numeric" pattern="[0-9]{11}" oninput="this.value=this.value.replace(/\D/g,'').slice(0,11)"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-equipment">Equipment Needed</label><select id="f-equipment" onchange="updateQtyLimit()"></select></div>
+        <div class="form-group"><label for="f-qty">Quantity</label><input type="number" id="f-qty" placeholder="Select item first" min="1" oninput="clampQty()"><small class="hint" id="qty-hint"></small></div>
+      </div>
+      <div class="form-group"><label for="f-purpose">Purpose of Use</label><input type="text" id="f-purpose" placeholder="e.g. Birthday party, community event…"></div>
+      <div class="form-grid">
+        <div class="form-group"><label for="f-date">Date Needed</label><input type="date" id="f-date" onchange="syncReturnMin()"></div>
+        <div class="form-group"><label for="f-return">Return Date</label><input type="date" id="f-return"></div>
+      </div>
+      <div class="form-group">
+        <label for="f-id">Valid ID (photo)</label>
+        <input type="file" id="f-id" accept="image/jpeg,image/png,image/*" onchange="handleIdUpload(this)">
+        <small class="hint">Attach a clear picture of your valid ID (JPG/PNG).</small>
+        <img id="f-id-preview" class="id-preview" alt="Valid ID preview" style="display:none;">
+      </div>
+      <div class="form-submit"><button class="btn btn-green" onclick="submitRequest()">✔ Submit Request</button></div>
+      <div class="success-msg" id="borrow-success">
+        ✅ Your request has been submitted! Your Request ID is <strong id="req-id-out"></strong>. Please keep it for your records.
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════ ADMIN PAGES ══════════ -->
+
+<div class="page" id="page-login">
+  <div class="form-page">
+    <div class="form-card">
+      <h2>🔐 Admin Login</h2>
+      <p class="form-desc">Authorized barangay staff only. Please sign in to continue.</p>
+      <div class="form-group"><label for="login-user">Username</label><input type="text" id="login-user" autocomplete="username"></div>
+      <div class="form-group"><label for="login-pass">Password</label><input type="password" id="login-pass" autocomplete="current-password"></div>
+      <div class="form-submit"><button class="btn btn-navy" onclick="doLogin()">🔓 Login</button></div>
+      <p style="text-align:center;margin-top:14px;"><button class="link-btn" onclick="showPublic()">← Back to public site</button></p>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-dashboard">
+  <div class="admin-content">
+    <h2 class="page-title">Dashboard</h2>
+    <div class="stat-cards">
+      <div class="stat-card sc-blue" onclick="showAdminPage('a-pending')"><div class="sc-icon">📋</div><div class="sc-num" id="dash-pending">0</div><div class="sc-label">Pending Requests</div></div>
+      <div class="stat-card sc-green" onclick="showAdminPage('a-approved')"><div class="sc-icon">✅</div><div class="sc-num" id="dash-approved">0</div><div class="sc-label">Approved Requests</div></div>
+      <div class="stat-card sc-orange" onclick="showAdminPage('a-returned')"><div class="sc-icon">📦</div><div class="sc-num" id="dash-returned">0</div><div class="sc-label">Returned Items</div></div>
+      <div class="stat-card sc-red" onclick="showAdminPage('a-lost')"><div class="sc-icon">⚠️</div><div class="sc-num" id="dash-lost">0</div><div class="sc-label">Lost/Damaged</div></div>
+    </div>
+    <div class="admin-grid">
+      <div class="stack">
+        <div class="card">
+          <div class="card-header"><h3>Equipment Inventory</h3></div>
+          <div class="inv-items" id="dash-inventory"></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Recent Requests</h3></div>
+          <div class="table-scroll">
+            <table>
+              <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="dash-recent-table"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-header"><h3>Quick Actions</h3></div>
+          <div class="quick-actions">
+            <button class="qa-btn qa-green" onclick="addRequestShortcut()">➕ Add New Request</button>
+            <button class="qa-btn qa-blue" onclick="showAdminPage('a-inventory')">⚙ Manage Inventory</button>
+            <button class="qa-btn qa-teal" onclick="showAdminPage('a-reports')">📊 View Reports</button>
+            <button class="qa-btn qa-orange" onclick="resetData()">🔄 Reset Demo Data</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-a-pending">
+  <div class="admin-content">
+    <h2 class="page-title">Pending Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Purpose</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="pending-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-approved">
+  <div class="admin-content">
+    <h2 class="page-title">Approved Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="approved-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-rejected">
+  <div class="admin-content">
+    <h2 class="page-title">Rejected Requests</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Reason</th><th>Status</th></tr></thead>
+      <tbody id="rejected-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-returned">
+  <div class="admin-content">
+    <h2 class="page-title">Returned Items</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th></tr></thead>
+      <tbody id="returned-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<div class="page" id="page-a-lost">
+  <div class="admin-content">
+    <h2 class="page-title">Lost / Damaged Items</h2>
+    <div class="card table-scroll"><table>
+      <thead><tr><th>Request ID</th><th>Borrower</th><th>Item</th><th>Qty</th><th>Date Needed</th><th>Return Date</th><th>Status</th></tr></thead>
+      <tbody id="lost-table"></tbody>
+    </table></div>
+  </div>
+</div>
+
+
+<div class="page" id="page-a-inventory">
+  <div class="admin-content">
+    <h2 class="page-title">Inventory</h2>
+    <div class="card">
+      <div class="card-header"><h3>Equipment Stock</h3><button class="btn btn-green btn-sm" onclick="showAddItem()">+ Add Item</button></div>
+      <div class="table-scroll"><table class="inv-table">
+        <thead><tr><th>Item</th><th>Total</th><th>Available</th><th>In Use</th><th>Lost/Damaged</th><th>Actions</th></tr></thead>
+        <tbody id="inventory-table"></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-a-reports">
+  <div class="admin-content">
+    <h2 class="page-title">📊 Reports</h2>
+    <div id="reports-admin-body"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modal-title">Title</h3>
+    <p id="modal-body"></p>
+    <div id="modal-form"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline btn-sm" id="modal-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-green btn-sm" id="modal-confirm">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>
+  &copy; <span id="year">2024</span> <span>Barangay Camp Tinio</span> &mdash; Equipment Borrowing and Monitoring System. All rights reserved.
+</footer>
+
+<!-- Load order matters: store → ui → app -->
+<script>
+/**
+ * store.js — data layer.
+ * All reads/writes go through the Store object, so when you add a real
+ * database later you only need to change this file (see README.md).
+ */
+const Store = (() => {
+  const KEY = 'ebms.camptinio.v1';
+
+  // Admin login. NOTE: this runs in the browser, so it only keeps casual visitors out.
+  // Real security needs a server/database (see README). Change these before use.
+  const ADMIN = { username: 'admin', password: 'camptinio2024' };
+
+  const STATUS = {
+    PENDING: 'Pending',
+    APPROVED: 'Approved',
+    RETURNED: 'Returned',
+    LOST: 'Lost/Damaged',
+    REJECTED: 'Rejected',
+  };
+
+  function seed() {
+    return {
+      counter: 103,
+      requests: [
+        { id: 'REQ-102', name: 'Juan Dela Cruz', contact: '09171234567', item: 'Monoblock Chairs', qty: 20, purpose: 'Birthday party', dateNeeded: '2024-06-15', returnDate: '2024-06-16', idNum: 'VID-001', status: STATUS.APPROVED },
+        { id: 'REQ-101', name: 'Maria Santos', contact: '09281234567', item: 'Collapsible Tents', qty: 2, purpose: 'Community event', dateNeeded: '2024-05-20', returnDate: '2024-05-21', idNum: 'VID-002', status: STATUS.APPROVED },
+        { id: 'REQ-100', name: 'Maria De Cruz', contact: '09391234567', item: 'Monoblock Chairs', qty: 15, purpose: 'Graduation celebration', dateNeeded: '2024-05-10', returnDate: '2024-05-11', idNum: 'VID-003', status: STATUS.RETURNED },
+        { id: 'REQ-99', name: 'Pedro Reyes', contact: '09501234567', item: 'Wooden Tables', qty: 3, purpose: 'Fiesta', dateNeeded: '2024-05-05', returnDate: '2024-05-06', idNum: 'VID-004', status: STATUS.PENDING },
+        { id: 'REQ-98', name: 'Ana Garcia', contact: '09611234567', item: 'Monoblock Chairs', qty: 10, purpose: 'Wedding', dateNeeded: '2024-04-20', returnDate: '2024-04-21', idNum: 'VID-005', status: STATUS.PENDING },
+        { id: 'REQ-97', name: 'Carlos Bautista', contact: '09721234567', item: 'Collapsible Tents', qty: 1, purpose: 'Company outing', dateNeeded: '2024-04-10', returnDate: '2024-04-11', idNum: 'VID-006', status: STATUS.LOST },
+        { id: 'REQ-96', name: 'Maria De Cruz', contact: '09391234567', item: 'Monoblock Chairs', qty: 8, purpose: 'Community meeting', dateNeeded: '2024-05-10', returnDate: '2024-05-11', idNum: 'VID-003', status: STATUS.PENDING },
+      ],
+      // "lost" = quantity currently lost/damaged. "in use" is computed from Approved requests.
+      items: [
+        { name: 'Monoblock Chairs', icon: '🪑', total: 100, lost: 4 },
+        { name: 'Collapsible Tents', icon: '⛺', total: 10, lost: 2 },
+        { name: 'Wooden Tables', icon: '🪵', total: 5, lost: 1 },
+      ],
+    };
+  }
+
+  function isValid(s) {
+    return s && Array.isArray(s.requests) && Array.isArray(s.items) && typeof s.counter === 'number';
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (isValid(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Could not read saved data, using defaults.', e);
+    }
+    return seed();
+  }
+
+  let state = load();
+
+  function save() {
+    try {
+      localStorage.setItem(KEY, JSON.stringify(state));
+      return true;
+    } catch (e) {
+      console.warn('Could not save data.', e);
+      return false;
+    }
+  }
+
+  return {
+    STATUS,
+
+    // ── requests ──
+    getRequests: () => state.requests,
+    getRequest: (id) => state.requests.find((r) => r.id === id),
+    findRequest(query) {
+      const q = String(query).trim().toLowerCase();
+      return state.requests.find((r) => r.id.toLowerCase() === q || r.name.toLowerCase() === q);
+    },
+    addRequest(data) {
+      const req = { id: 'REQ-' + state.counter++, ...data, status: STATUS.PENDING };
+      state.requests.unshift(req);
+      if (!save()) {
+        state.requests.shift();
+        state.counter--;
+        return null; // storage full
+      }
+      return req;
+    },
+    setStatus(id, status, extra = {}) {
+      const r = state.requests.find((x) => x.id === id);
+      if (!r) return null;
+      r.status = status;
+      Object.assign(r, extra);
+      save();
+      return r;
+    },
+
+    // ── items ──
+    getItems: () => state.items,
+    getItem: (name) => state.items.find((i) => i.name === name),
+    addItem(name, total) {
+      state.items.push({ name, icon: '📦', total, lost: 0 });
+      save();
+    },
+    updateItem(index, { total, lost }) {
+      const it = state.items[index];
+      if (!it) return;
+      it.total = total;
+      it.lost = lost;
+      save();
+    },
+
+    // ── computed inventory ──
+    inUse(name) {
+      return state.requests
+        .filter((r) => r.status === STATUS.APPROVED && r.item === name)
+        .reduce((sum, r) => sum + r.qty, 0);
+    },
+    available(item) {
+      return Math.max(0, item.total - item.lost - this.inUse(item.name));
+    },
+
+    // ── admin login ──
+    checkLogin: (user, pass) => user === ADMIN.username && pass === ADMIN.password,
+
+    // ── maintenance ──
+    reset() {
+      state = seed();
+      save();
+    },
+  };
+})();
+
+</script>
+<script>
+/**
+ * ui.js — everything that draws to the page. Reads from Store, never writes.
+ */
+const $ = (id) => document.getElementById(id);
+
+// Escape user-entered text before putting it into innerHTML
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+function badgeClass(status) {
+  return {
+    'Approved': 'badge-approved',
+    'Pending': 'badge-pending',
+    'Returned': 'badge-returned',
+    'Lost/Damaged': 'badge-lost',
+    'Rejected': 'badge-rejected',
+  }[status] || 'badge-pending';
+}
+const badge = (status) => `<span class="badge ${badgeClass(status)}">${esc(status)}</span>`;
+
+// ── toast ──
+let toastTimer;
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ── modal ──
+function openModal({ title, body = '', formHtml = '', confirmText = 'Close', onConfirm = closeModal, showCancel = false }) {
+  $('modal-title').textContent = title;
+  $('modal-body').textContent = body;
+  $('modal-form').innerHTML = formHtml;
+  $('modal-confirm').textContent = confirmText;
+  $('modal-confirm').onclick = onConfirm;
+  $('modal-cancel').style.display = showCancel ? '' : 'none';
+  $('modal').classList.add('show');
+}
+function closeModal() { $('modal').classList.remove('show'); }
+
+// ── shared bits ──
+const detailRow = (label, value) =>
+  `<div class="status-detail-row"><span class="label">${label}</span><span class="value">${value}</span></div>`;
+
+function requestDetailsHtml(r, includeId = false) {
+  return (
+    (includeId ? detailRow('Request ID', esc(r.id)) : '') +
+    detailRow('Borrower', esc(r.name)) +
+    detailRow('Contact', esc(r.contact)) +
+    detailRow('Item', `${esc(r.item)} (${r.qty})`) +
+    detailRow('Purpose', esc(r.purpose)) +
+    detailRow('Date Needed', esc(r.dateNeeded)) +
+    detailRow('Return Date', esc(r.returnDate)) +
+    detailRow('Status', badge(r.status)) +
+    (r.status === 'Rejected' ? detailRow('Reason', esc(r.rejectReason || '—')) : '') +
+    (r.idImage
+      ? `<div class="status-detail-row" style="flex-direction:column;"><span class="label">Valid ID</span><img class="id-thumb" src="${r.idImage}" alt="Valid ID of ${esc(r.name)}"></div>`
+      : detailRow('Valid ID No.', esc(r.idNum || '—')))
+  );
+}
+
+// Why an item can't be borrowed right now
+function stockStatus(it) {
+  const avail = Store.available(it);
+  const out = Store.inUse(it.name);
+  return { avail, out, soldOut: avail === 0, onLoan: avail === 0 && out > 0 };
+}
+
+// showStatus = true on the public page: adds "out on loan" indications
+function inventoryCards(items, showStatus = false) {
+  return items.map((it) => {
+    const s = stockStatus(it);
+    let note = '';
+    if (showStatus) {
+      if (s.onLoan) note = '<div class="stock-note stock-out">Not available – out on loan</div>';
+      else if (s.soldOut) note = '<div class="stock-note stock-out">Not available</div>';
+      else if (s.out > 0) note = `<div class="stock-note">${s.out} out on loan</div>`;
+    }
+    return `
+    <div class="inv-item${showStatus && s.soldOut ? ' is-out' : ''}"><div class="icon">${it.icon}</div>
+      <div class="count">${s.avail}</div>
+      <div class="label">${esc(it.name)}</div>${note}</div>`;
+  }).join('');
+}
+
+// ── public pages ──
+function renderPublicHome() {
+  $('pub-inventory').innerHTML = inventoryCards(Store.getItems(), true);
+}
+
+function renderEquipmentSelect() {
+  const sel = $('f-equipment');
+  const previous = sel.value;
+  sel.innerHTML = '<option value="">Select item</option>' +
+    Store.getItems().map((it) => {
+      const s = stockStatus(it);
+      const label = s.onLoan ? `${it.name} — out on loan (none available)`
+        : s.soldOut ? `${it.name} — not available`
+        : `${it.name} (${s.avail} available)`;
+      return `<option value="${esc(it.name)}">${esc(label)}</option>`;
+    }).join('');
+  sel.value = Store.getItem(previous) ? previous : '';
+}
+
+// ── reports ──
+function computeReport() {
+  const reqs = Store.getRequests();
+  const count = (s) => reqs.filter((r) => r.status === s).length;
+  const returned = count(Store.STATUS.RETURNED);
+  const lost = count(Store.STATUS.LOST);
+  const byItem = Store.getItems().map((it) => ({
+    name: it.name,
+    qty: reqs.filter((r) => r.item === it.name).reduce((s, r) => s + r.qty, 0),
+  }));
+  return {
+    total: reqs.length,
+    approved: count(Store.STATUS.APPROVED),
+    returned,
+    pending: count(Store.STATUS.PENDING),
+    rejected: count(Store.STATUS.REJECTED),
+    lost,
+    returnRate: returned + lost > 0 ? Math.round((returned / (returned + lost)) * 100) + '%' : '—',
+    byItem,
+  };
+}
+
+const statBox = (num, label) =>
+  `<div class="report-stat"><div class="rs-num">${num}</div><div class="rs-label">${label}</div></div>`;
+
+function barChartHtml(byItem) {
+  const colors = ['var(--navy-mid)', 'var(--green-light)', 'var(--orange)', 'var(--teal)'];
+  const max = Math.max(1, ...byItem.map((b) => b.qty));
+  return `<div class="bar-chart">${byItem.map((b, i) => `
+    <div class="bar-wrap"><div class="bar-val">${b.qty}</div>
+      <div class="bar" style="height:${Math.round((b.qty / max) * 100)}px;background:${colors[i % colors.length]};"></div>
+      <div class="bar-label">${esc(b.name)}</div></div>`).join('')}</div>`;
+}
+
+function renderReports() {
+  const r = computeReport();
+  $('reports-admin-body').innerHTML = `
+    <div class="reports-grid">
+      ${statBox(r.total, 'Total Requests')}${statBox(r.approved, 'Approved')}${statBox(r.returned, 'Returned')}
+      ${statBox(r.pending, 'Pending')}${statBox(r.rejected, 'Rejected')}${statBox(r.lost, 'Lost/Damaged')}${statBox(r.returnRate, 'Return Rate')}
+    </div>
+    <div class="card"><h3 style="margin-bottom:16px;">Borrowing Activity (qty requested per item)</h3>${barChartHtml(r.byItem)}</div>`;
+}
+
+// ── admin ──
+function renderStats() {
+  const r = computeReport();
+  $('dash-pending').textContent = r.pending;
+  $('dash-approved').textContent = r.approved;
+  $('dash-returned').textContent = r.returned;
+  $('dash-lost').textContent = r.lost;
+}
+
+function renderDashboard() {
+  renderStats();
+  const items = Store.getItems();
+  const lostTotal = items.reduce((s, it) => s + it.lost, 0);
+  $('dash-inventory').innerHTML = inventoryCards(items) +
+    `<div class="inv-item"><div class="icon">⚠️</div><div class="count">${lostTotal}</div><div class="label">Lost/Dmgd</div></div>`;
+
+  $('dash-recent-table').innerHTML = Store.getRequests().slice(0, 5).map((r) => `
+    <tr>
+      <td class="req-id">${esc(r.id)}</td>
+      <td>${esc(r.name)}</td>
+      <td><strong>${esc(r.item)}</strong></td>
+      <td>${esc(r.dateNeeded)}</td>
+      <td>${badge(r.status)}</td>
+      <td>${actionButtons(r)}<button class="link-btn" onclick="viewDetail('${esc(r.id)}')">Details</button></td>
+    </tr>`).join('');
+}
+
+function actionButtons(r) {
+  if (r.status === Store.STATUS.PENDING)
+    return `<button class="btn-approve" onclick="approveReq('${esc(r.id)}')">Approve</button> ` +
+           `<button class="btn-lost" onclick="rejectReq('${esc(r.id)}')">Reject</button> `;
+  if (r.status === Store.STATUS.APPROVED)
+    return `<button class="btn-return" onclick="markReturned('${esc(r.id)}')">Returned</button> ` +
+           `<button class="btn-lost" onclick="markLost('${esc(r.id)}')">Lost</button> `;
+  return '';
+}
+
+const REQUEST_TABLES = {
+  'a-pending':  { body: 'pending-table',  status: 'Pending',      cols: 8, third: (r) => esc(r.purpose),    actions: true },
+  'a-approved': { body: 'approved-table', status: 'Approved',     cols: 8, third: (r) => esc(r.returnDate), actions: true },
+  'a-rejected': { body: 'rejected-table', status: 'Rejected',     cols: 7, third: (r) => esc(r.rejectReason || '—'), actions: false },
+  'a-returned': { body: 'returned-table', status: 'Returned',     cols: 7, third: (r) => esc(r.returnDate), actions: false },
+  'a-lost':     { body: 'lost-table',     status: 'Lost/Damaged', cols: 7, third: (r) => esc(r.returnDate), actions: false },
+};
+
+function renderRequestTable(pageId) {
+  const cfg = REQUEST_TABLES[pageId];
+  const rows = Store.getRequests().filter((r) => r.status === cfg.status);
+  const tbody = $(cfg.body);
+  if (!rows.length) {
+    tbody.innerHTML = `<tr><td colspan="${cfg.cols}" class="empty-row">No records found.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = rows.map((r) => `
+    <tr>
+      <td class="req-id">${esc(r.id)}</td>
+      <td>${esc(r.name)}</td>
+      <td>${esc(r.item)}</td>
+      <td>${r.qty}</td>
+      <td>${esc(r.dateNeeded)}</td>
+      <td>${cfg.third(r)}</td>
+      <td>${badge(r.status)}</td>
+      ${cfg.actions ? `<td>${actionButtons(r)}<button class="link-btn" onclick="viewDetail('${esc(r.id)}')">Details</button></td>` : ''}
+    </tr>`).join('');
+}
+
+function renderInventoryTable() {
+  $('inventory-table').innerHTML = Store.getItems().map((it, i) => `
+    <tr>
+      <td>${it.icon} ${esc(it.name)}</td>
+      <td>${it.total}</td>
+      <td class="available">${Store.available(it)}</td>
+      <td class="in-use">${Store.inUse(it.name)}</td>
+      <td class="lost">${it.lost}</td>
+      <td><button class="btn-edit" onclick="editItem(${i})">Edit</button></td>
+    </tr>`).join('');
+}
+
+// Re-draw everything that depends on request/item data
+function refreshAll() {
+  renderPublicHome();
+  renderEquipmentSelect();
+  if (typeof updateQtyLimit === 'function') updateQtyLimit();
+  renderReports();
+  renderStats();
+}
+
+</script>
+<script>
+/**
+ * app.js — navigation, user actions, and startup.
+ * Uses Store (data) and the render functions from ui.js.
+ */
+const PUBLIC_PAGES = ['home', 'borrow', 'login'];
+const ADMIN_PAGES = ['dashboard', 'a-pending', 'a-approved', 'a-rejected', 'a-returned', 'a-lost', 'a-inventory', 'a-reports'];
+
+// ─── TERMS & CONDITIONS ────────────────────────────────────────
+let termsOk = false; // fallback if sessionStorage is unavailable
+function hasAcceptedTerms() {
+  try { return sessionStorage.getItem('ebms.terms') === '1' || termsOk; } catch (e) { return termsOk; }
+}
+function showTerms() {
+  $('terms-check').checked = false;
+  $('terms-continue').disabled = true;
+  $('terms-overlay').classList.remove('hidden');
+}
+function onTermsToggle() {
+  $('terms-continue').disabled = !$('terms-check').checked;
+}
+function acceptTerms() {
+  if (!$('terms-check').checked) return;
+  termsOk = true;
+  try { sessionStorage.setItem('ebms.terms', '1'); } catch (e) { /* ignore */ }
+  $('terms-overlay').classList.add('hidden');
+}
+
+// ─── NAVIGATION ────────────────────────────────────────────────
+function activatePage(id, navId) {
+  [...PUBLIC_PAGES, ...ADMIN_PAGES].forEach((p) => $('page-' + p).classList.remove('active'));
+  $('page-' + id).classList.add('active');
+  document.querySelectorAll(`#${navId} button[data-page]`).forEach((b) => {
+    b.classList.toggle('active', b.dataset.page === id);
+  });
+}
+
+function showPage(id) {
+  if (id === 'borrow' && !hasAcceptedTerms()) { showTerms(); return; }
+  activatePage(id, 'public-nav');
+  if (id === 'home') renderPublicHome();
+  if (id === 'borrow') setDateLimits();
+}
+
+function showAdminPage(id) {
+  if (!isLoggedIn()) { showLogin(); return; }
+  activatePage(id, 'admin-nav');
+  if (id === 'dashboard') renderDashboard();
+  else if (REQUEST_TABLES[id]) renderRequestTable(id);
+  else if (id === 'a-inventory') renderInventoryTable();
+  else if (id === 'a-reports') renderReports();
+}
+
+// ─── ADMIN LOGIN ───────────────────────────────────────────────
+let loggedIn = false; // fallback if sessionStorage is unavailable
+function isLoggedIn() {
+  try { return sessionStorage.getItem('ebms.admin') === '1' || loggedIn; } catch (e) { return loggedIn; }
+}
+function setLoggedIn(v) {
+  loggedIn = v;
+  try { v ? sessionStorage.setItem('ebms.admin', '1') : sessionStorage.removeItem('ebms.admin'); } catch (e) { /* ignore */ }
+}
+function showLogin() {
+  $('admin-nav').style.display = 'none';
+  $('public-nav').style.display = 'flex';
+  activatePage('login', 'public-nav');
+  $('login-user').focus();
+}
+function doLogin() {
+  const user = $('login-user').value.trim();
+  const pass = $('login-pass').value;
+  if (!Store.checkLogin(user, pass)) {
+    showToast('❌ Incorrect username or password.');
+    $('login-pass').value = '';
+    return;
+  }
+  setLoggedIn(true);
+  $('login-user').value = '';
+  $('login-pass').value = '';
+  showToast('✅ Welcome, Admin!');
+  showAdmin();
+}
+function logout() {
+  setLoggedIn(false);
+  showPublic();
+  showToast('👋 Logged out.');
+}
+
+function showAdmin() {
+  if (!isLoggedIn()) { showLogin(); return; }
+  $('public-nav').style.display = 'none';
+  $('admin-nav').style.display = 'flex';
+  showAdminPage('dashboard');
+}
+
+function showPublic() {
+  $('admin-nav').style.display = 'none';
+  $('public-nav').style.display = 'flex';
+  showPage('home');
+}
+
+function addRequestShortcut() {
+  showPublic();
+  showPage('borrow');
+}
+
+// Re-draw whichever admin page is open after data changes
+function refreshAdminView() {
+  const active = ADMIN_PAGES.find((p) => $('page-' + p).classList.contains('active'));
+  refreshAll();
+  if (active) showAdminPage(active);
+}
+
+// ─── BORROW FORM HELPERS ───────────────────────────────────────
+let pendingIdImage = null;
+
+function todayStr() {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+// Past dates can't be picked: both fields start at today; return date starts at the date needed
+function setDateLimits() {
+  const today = todayStr();
+  $('f-date').min = today;
+  $('f-return').min = $('f-date').value && $('f-date').value >= today ? $('f-date').value : today;
+}
+
+function syncReturnMin() {
+  setDateLimits();
+  if ($('f-return').value && $('f-return').value < $('f-return').min) $('f-return').value = '';
+}
+
+// Quantity can't exceed what's available for the selected item
+function updateQtyLimit() {
+  const qty = $('f-qty'), hint = $('qty-hint');
+  const item = Store.getItem($('f-equipment').value);
+  hint.classList.remove('hint-out');
+  if (!item) {
+    qty.removeAttribute('max'); qty.disabled = false; qty.placeholder = 'Select item first'; hint.textContent = '';
+    return;
+  }
+  const s = stockStatus(item);
+  qty.max = s.avail;
+  qty.disabled = s.soldOut;
+  if (s.soldOut) {
+    qty.value = '';
+    qty.placeholder = 'Not available';
+    hint.classList.add('hint-out');
+    hint.textContent = s.onLoan
+      ? `❌ Not available — all ${s.out} unit(s) are currently out on loan.`
+      : '❌ Not available right now.';
+    return;
+  }
+  qty.placeholder = `Max ${s.avail}`;
+  hint.textContent = `Available: ${s.avail}` + (s.out > 0 ? ` (${s.out} out on loan)` : '');
+  if (parseInt(qty.value, 10) > s.avail) qty.value = s.avail;
+}
+function clampQty() {
+  const qty = $('f-qty');
+  const max = parseInt(qty.max, 10);
+  const v = parseInt(qty.value, 10);
+  if (!Number.isNaN(max) && v > max) { qty.value = max; showToast(`⚠️ Only ${max} available.`); }
+  else if (v < 1) qty.value = '';
+}
+
+// Read the chosen image, shrink it (max 900px, JPEG) so it fits in browser storage
+function handleIdUpload(input) {
+  const file = input.files[0];
+  const preview = $('f-id-preview');
+  pendingIdImage = null;
+  preview.style.display = 'none';
+  if (!file) return;
+  if (!file.type.startsWith('image/')) {
+    showToast('⚠️ Please choose an image file (JPG/PNG).');
+    input.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, 900 / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(img.width * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      pendingIdImage = canvas.toDataURL('image/jpeg', 0.75);
+      preview.src = pendingIdImage;
+      preview.style.display = 'block';
+    };
+    img.onerror = () => { showToast('⚠️ Could not read that image.'); input.value = ''; };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── BORROW FORM ───────────────────────────────────────────────
+function submitRequest() {
+  if (!hasAcceptedTerms()) { showTerms(); return; }
+  const name = $('f-name').value.trim();
+  const contact = $('f-contact').value.trim();
+  const item = $('f-equipment').value;
+  const qty = parseInt($('f-qty').value, 10);
+  const purpose = $('f-purpose').value.trim();
+  const dateNeeded = $('f-date').value;
+  const returnDate = $('f-return').value;
+
+  if (!name || !contact || !item || !qty || !purpose || !dateNeeded || !returnDate) {
+    showToast('⚠️ Please fill in all fields.');
+    return;
+  }
+  if (!/^\d{11}$/.test(contact)) { showToast('⚠️ Contact number must be exactly 11 digits.'); return; }
+  if (!pendingIdImage) { showToast('⚠️ Please attach a picture of your valid ID.'); return; }
+  const today = todayStr();
+  if (dateNeeded < today || returnDate < today) { showToast('⚠️ Dates cannot be in the past.'); return; }
+  if (qty < 1) { showToast('⚠️ Quantity must be at least 1.'); return; }
+  if (returnDate < dateNeeded) { showToast('⚠️ Return date cannot be before the date needed.'); return; }
+
+  const itemObj = Store.getItem(item);
+  const available = Store.available(itemObj);
+  if (available === 0) {
+    showToast(Store.inUse(item) > 0
+      ? `❌ ${item} is not available — all units are currently out on loan.`
+      : `❌ ${item} is not available right now.`);
+    return;
+  }
+  if (qty > available) {
+    showToast(`⚠️ Only ${available} ${item} available right now.`);
+    return;
+  }
+
+  const req = Store.addRequest({ name, contact, item, qty, purpose, dateNeeded, returnDate, idImage: pendingIdImage, termsAcceptedAt: new Date().toISOString() });
+  if (!req) { showToast('❌ Storage is full. Please remove old requests or use a smaller ID photo.'); return; }
+
+  $('req-id-out').textContent = req.id;
+  $('borrow-success').classList.add('show');
+  ['f-name', 'f-contact', 'f-qty', 'f-purpose', 'f-date', 'f-return', 'f-id'].forEach((id) => ($(id).value = ''));
+  pendingIdImage = null;
+  $('f-id-preview').style.display = 'none';
+  setDateLimits();
+  $('f-equipment').value = '';
+  refreshAll();
+  showToast('✅ Request ' + req.id + ' submitted!');
+}
+
+// ─── REQUEST DETAILS ───────────────────────────────────────────
+function viewDetail(id) {
+  const r = Store.getRequest(id);
+  if (!r) return;
+  openModal({
+    title: 'Request Details – ' + r.id,
+    formHtml: requestDetailsHtml(r),
+    confirmText: 'Close',
+  });
+}
+
+// ─── ADMIN ACTIONS ─────────────────────────────────────────────
+function approveReq(id) {
+  const r = Store.getRequest(id);
+  if (!r) return;
+  const available = Store.available(Store.getItem(r.item));
+  if (r.qty > available) {
+    showToast(`⚠️ Cannot approve: only ${available} ${r.item} available.`);
+    return;
+  }
+  Store.setStatus(id, Store.STATUS.APPROVED);
+  showToast('✅ ' + id + ' approved!');
+  refreshAdminView();
+}
+
+function rejectReq(id) {
+  const r = Store.getRequest(id);
+  if (!r) return;
+  openModal({
+    title: 'Reject Request',
+    body: `Reject ${r.id} from ${r.name} (${r.qty} × ${r.item})?`,
+    formHtml: '<div class="form-group"><label for="reject-reason">Reason (optional)</label><textarea id="reject-reason" placeholder="e.g. Items not available on that date"></textarea></div>',
+    confirmText: 'Reject',
+    showCancel: true,
+    onConfirm: () => {
+      const reason = $('reject-reason').value.trim();
+      Store.setStatus(id, Store.STATUS.REJECTED, { rejectReason: reason });
+      closeModal();
+      showToast('🚫 ' + id + ' rejected.');
+      refreshAdminView();
+    },
+  });
+}
+
+function markReturned(id) {
+  Store.setStatus(id, Store.STATUS.RETURNED);
+  showToast('📦 ' + id + ' marked as returned.');
+  refreshAdminView();
+}
+
+function markLost(id) {
+  const r = Store.getRequest(id);
+  if (!r) return;
+  openModal({
+    title: 'Mark as Lost/Damaged',
+    body: `Mark ${r.id} (${r.qty} × ${r.item}) as lost or damaged? The items will be counted in the item's Lost/Damaged total.`,
+    confirmText: 'Confirm',
+    showCancel: true,
+    onConfirm: () => {
+      Store.setStatus(id, Store.STATUS.LOST);
+      const it = Store.getItem(r.item);
+      if (it) Store.updateItem(Store.getItems().indexOf(it), { total: it.total, lost: it.lost + r.qty });
+      closeModal();
+      showToast('⚠️ ' + id + ' marked as lost/damaged.');
+      refreshAdminView();
+    },
+  });
+}
+
+function editItem(i) {
+  const it = Store.getItems()[i];
+  openModal({
+    title: 'Edit: ' + it.name,
+    body: 'Update inventory numbers for this item. "In use" is calculated from approved requests.',
+    formHtml: `
+      <div class="form-group"><label for="edit-total">Total Quantity</label><input type="number" id="edit-total" value="${it.total}" min="0"></div>
+      <div class="form-group"><label for="edit-lost">Lost/Damaged</label><input type="number" id="edit-lost" value="${it.lost}" min="0"></div>`,
+    confirmText: 'Save Changes',
+    showCancel: true,
+    onConfirm: () => {
+      const total = parseInt($('edit-total').value, 10);
+      const lost = parseInt($('edit-lost').value, 10);
+      if (Number.isNaN(total) || Number.isNaN(lost) || total < 0 || lost < 0) {
+        showToast('⚠️ Enter valid numbers.');
+        return;
+      }
+      if (lost > total) { showToast('⚠️ Lost/Damaged cannot exceed total.'); return; }
+      Store.updateItem(i, { total, lost });
+      closeModal();
+      showToast('✅ Item updated!');
+      refreshAdminView();
+    },
+  });
+}
+
+function showAddItem() {
+  openModal({
+    title: 'Add New Item',
+    body: 'Enter details for the new equipment item.',
+    formHtml: `
+      <div class="form-group"><label for="add-name">Item Name</label><input type="text" id="add-name" placeholder="e.g. Sound System"></div>
+      <div class="form-group"><label for="add-total">Total Quantity</label><input type="number" id="add-total" placeholder="0" min="0"></div>`,
+    confirmText: 'Add Item',
+    showCancel: true,
+    onConfirm: () => {
+      const name = $('add-name').value.trim();
+      const total = parseInt($('add-total').value, 10) || 0;
+      if (!name) { showToast('⚠️ Please enter item name.'); return; }
+      if (Store.getItem(name)) { showToast('⚠️ That item already exists.'); return; }
+      Store.addItem(name, total);
+      closeModal();
+      showToast('✅ Item added: ' + name);
+      refreshAdminView();
+    },
+  });
+}
+
+function resetData() {
+  openModal({
+    title: 'Reset Demo Data',
+    body: 'This erases all saved requests and items and restores the sample data. Continue?',
+    confirmText: 'Reset',
+    showCancel: true,
+    onConfirm: () => {
+      Store.reset();
+      closeModal();
+      showToast('🔄 Data reset.');
+      refreshAdminView();
+    },
+  });
+}
+
+// ─── INIT ──────────────────────────────────────────────────────
+$('modal').addEventListener('click', (e) => { if (e.target === $('modal')) closeModal(); });
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+$('login-pass').addEventListener('keydown', (e) => { if (e.key === 'Enter') doLogin(); });
+$('year').textContent = new Date().getFullYear();
+
+refreshAll();
+setDateLimits();
+if (hasAcceptedTerms()) $('terms-overlay').classList.add('hidden'); else showTerms();
+
+</script>
+</body>
+</html>
